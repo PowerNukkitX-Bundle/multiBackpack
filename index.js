@@ -6,7 +6,9 @@ import { PowerNukkitX as pnx, EventPriority } from ":powernukkitx";
 var worldconfig; // 全局配置，用于存储各个世界配置文件的内容
 
 export function main() {
-    let worldconfigtext = readFile("./plugins/mutiBackpack/groups.json")
+    console.log("多世界背包已启动");
+    let worldconfigtext = readFile("./plugins/mutiBackpack/groups.json");
+    console.warn(worldconfigtext);
     if (worldconfigtext === null) {
         worldconfigtext = JSON.stringify({
             "groups": [
@@ -17,7 +19,7 @@ export function main() {
             ],
             "played": []
         }, null, 4);
-        writeFile("./plugins/mutiBackpack/groups.json", worldconfigtext);
+        console.log(writeFile("./plugins/mutiBackpack/groups.json", worldconfigtext));
     }
     worldconfig = JSON.parse(worldconfigtext);
     // 自动保存

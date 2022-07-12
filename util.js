@@ -23,10 +23,18 @@ export function readFile(path) {
  */
 export function writeFile(path, context) {
     const jPath = Paths.get(path);
+    const jFolder = jPath.getParent();
     try {
+        if (Files.notExists(jFolder)) {
+            Files.createDirectories(jFolder);
+        }
+        if (Files.notExists(jPath)) {
+            Files.createFile(jPath);
+        }
         Files.writeString(jPath, context, StandardCharsets.UTF_8);
         return true;
     } catch (e) {
+        e.printStackTrace();
         return false;
     }
 }
