@@ -1,28 +1,92 @@
-/*
- * 整个JS代码将在服务器刚启动时加载，请务必牢记：大部分与游戏相关的内容，
- * 如监听事件，生成物品，操作地图，控制生物等等都不能在刚开始的时候进行！
- * 
- * The entire JS code will be loaded when the server is just started. 
- * Please keep in mind that most game related content, such as monitoring events, 
- * generating items, operating worlds, controlling entities, etc., cannot be carried out at the beginning!
- */
-console.log("Wow world")
+import { readFile, writeFile } from "./util.js";
+import { Bag2String, String2Bag } from "./serialize.js";
+import { Server } from "cn.nukkit.Server";
+import { PowerNukkitX as pnx, EventPriority } from ":powernukkitx";
 
-/*
- * main函数将会在PNX服务器初始化完成后被调用，此函数被调用时及以后您可以进行与游戏相关的操作。
+var worldconfig; // 全局配置，用于存储各个世界配置文件的内容
 
- * The main function will be called after the PNX server is initialized. 
- * When this function is called and later, you can perform game related operations.
- */
 export function main() {
-    console.warn("Hello world")
+    let worldconfigtext = readFile("./plugins/mutiBackpack/groups.json")
+    if (worldconfigtext === null) {
+        worldconfigtext = JSON.stringify({
+            "groups": [
+                {
+                    "name": "test",
+                    "worlds": ["world"]
+                }
+            ],
+            "played": []
+        }, null, 4);
+        writeFile("./plugins/mutiBackpack/groups.json", worldconfigtext);
+    }
+    worldconfig = JSON.parse(worldconfigtext);
+    // 自动保存
+    setInterval(saveAll, 10000);
+    // 监听事件
+    pnx.listenEvent("cn.nukkit.event.player.PlayerJoinEvent", EventPriority.NORMAL, event => {
+        if (hasJoinedBefore(event.getPlayer())) {
+            String2Bag(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+        } else {
+            Bag2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+            worldconfig["played"].push(event.getPlayer().getName());
+            writeFile("./plugins/mutiBackpack/groups.json", JSON.stringify(worldconfig, null, 4));
+        }
+    });
+    pnx.listenEvent("cn.nukkit.event.player.PlayerQuitEvent", EventPriority.NORMAL, event => {
+        Bag2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+    });
+    pnx.listenEvent("cn.nukkit.event.player.PlayerTeleportEvent", EventPriority.NORMAL, event => {
+        if (event.getFrom().getLevel().getName() !== event.getTo().getLevel().getName()) {
+            Bag2String(event.getPlayer(), getGroup(event.getFrom().getLevel().getName()));
+            String2Bag(event.getPlayer(), getGroup(event.getTo().getLevel().getName()));
+        }
+    });
+    pnx.listenEvent("cn.nukkit.event.player.PlayerRespawnEvent", EventPriority.NORMAL, event => {
+        String2Bag(event.getPlayer(), getGroup(event.getRespawnPosition().getLevel().getName()));
+    });
+    pnx.listenEvent("cn.nukkit.event.player.PlayerDeathEvent", EventPriority.NORMAL, event => {
+        Bag2String(event.getEntity(),getGroup(event.getEntity().getLevel().getName()));
+    })
 }
 
-/*
- * close函数将会在在PNX服务器关闭时或您的插件被卸载时调用，此时您应当进行一些清理收尾工作。
- * The close function will be called when the PNX server is shutdown or your plugin is uninstalled. 
- * At this time, you should do some cleaning and finishing work.
+function saveAll() {
+    /** @type {cn.nukkit.Player[]} */
+    let pls = Server.getInstance().getOnlinePlayers().values().toArray()
+    for (const each of pls) {
+        Bag2String(each, getGroup(each.getLevel().getName()));
+    }
+}
+
+/**
+ * 根据世界名称获取背包组名称
+ * @param {string} worldname
+ * @returns {string} 背包组名称
  */
+function getGroup(worldname) {
+    for (let i = 0; i < worldconfig['groups'].length; i++) {
+        for (let j = 0; j < worldconfig['groups'][i]["worlds"].length; j++) {
+            if (worldname === worldconfig['groups'][i]["worlds"][j]) {
+                return worldconfig['groups'][i]["name"];
+            }
+        }
+    }
+    return "default";
+}
+
+/**
+ * 获取玩家之前是否进过服
+ * @param {cn.nukkit.Player} player
+ * @returns {boolean}
+ */
+function hasJoinedBefore(player) {
+    for (let i = 0; i < worldconfig["played"].length; i++) {
+        if (worldconfig["played"][i] === player.getName()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function close() {
-    console.error("Goodbye world")
+    console.error("Goodbye world");
 }
