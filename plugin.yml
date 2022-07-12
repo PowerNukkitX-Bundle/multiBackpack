@@ -1,6 +1,6 @@
 name: multiBackpack
 main: index.js
-version: "1.0.2-PNX"
+version: "1.0.7-PNX"
 api: ["1.0.14"]
 load: POSTWORLD
 author: 超神的冰凉

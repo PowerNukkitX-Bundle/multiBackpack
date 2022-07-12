@@ -1,14 +1,17 @@
 import { readFile, writeFile } from "./util.js";
-import { Bag2String, String2Bag } from "./serialize.js";
+import { Bag2String, String2Bag, EnderChest2String, String2EnderChest, Xp2String, String2Xp } from "./serialize.js";
 import { Server } from "cn.nukkit.Server";
 import { PowerNukkitX as pnx, EventPriority } from ":powernukkitx";
+import { Item } from "cn.nukkit.item.Item";
 
-var worldconfig; // 全局配置，用于存储各个世界配置文件的内容
+const AIR = Item.get(0);
+// 全局配置，用于存储各个世界配置文件的内容
+var worldconfig;
+//组别是否保存经验
+var xpconfig = {}; //key:组名 value:是否保存经验
 
 export function main() {
-    console.log("多世界背包已启动");
     let worldconfigtext = readFile("./plugins/mutiBackpack/groups.json");
-    console.warn(worldconfigtext);
     if (worldconfigtext === null) {
         worldconfigtext = JSON.stringify({
             "groups": [
@@ -19,35 +22,78 @@ export function main() {
             ],
             "played": []
         }, null, 4);
-        console.log(writeFile("./plugins/mutiBackpack/groups.json", worldconfigtext));
+        writeFile("./plugins/mutiBackpack/groups.json", worldconfigtext);
     }
     worldconfig = JSON.parse(worldconfigtext);
+    for (let i = 0; i < worldconfig['groups'].length; i++) {
+        let each = worldconfig['groups'][i];
+        if (each["xp"] === true) {
+            xpconfig[each['name']] = true;
+        } else {
+            xpconfig[each['name']] = false;
+        }
+    }
     // 自动保存
     setInterval(saveAll, 10000);
     // 监听事件
     pnx.listenEvent("cn.nukkit.event.player.PlayerJoinEvent", EventPriority.NORMAL, event => {
         if (hasJoinedBefore(event.getPlayer())) {
             String2Bag(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+            String2EnderChest(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+            String2Xp(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()), xpconfig);
         } else {
             Bag2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+            EnderChest2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+            Xp2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()), xpconfig);
             worldconfig["played"].push(event.getPlayer().getName());
             writeFile("./plugins/mutiBackpack/groups.json", JSON.stringify(worldconfig, null, 4));
         }
     });
     pnx.listenEvent("cn.nukkit.event.player.PlayerQuitEvent", EventPriority.NORMAL, event => {
         Bag2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+        EnderChest2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
+        Xp2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()), xpconfig);
     });
     pnx.listenEvent("cn.nukkit.event.player.PlayerTeleportEvent", EventPriority.NORMAL, event => {
         if (event.getFrom().getLevel().getName() !== event.getTo().getLevel().getName()) {
+            const player = event.getPlayer();
+            player.removeAllWindows();
+            const craft1 = player.getUIInventory().getCraftingGrid().getItem(0).getId();
+            const craft2 = player.getUIInventory().getCraftingGrid().getItem(1).getId();
+            const craft3 = player.getUIInventory().getCraftingGrid().getItem(2).getId();
+            const craft4 = player.getUIInventory().getCraftingGrid().getItem(3).getId();
+            const cursor = player.getCursorInventory().getItem(0).getId();
+            if (craft1 !== 0 || craft2 !== 0 || craft3 !== 0 || craft4 !== 0 || cursor !== 0) {
+                event.setCancelled();
+                player.kick("Do not take items to another world!");
+                return;
+            }
+            const off = player.getOffhandInventory().getItem(0);
+            if (off.getId() !== 0) {
+                player.getOffhandInventory().setItem(0, AIR);
+                if (player.getInventory().canAddItem(off)) {
+                    player.getInventory().addItem(off);
+                } else {
+                    player.getLevel().dropItem(player, off);
+                }
+            }
             Bag2String(event.getPlayer(), getGroup(event.getFrom().getLevel().getName()));
+            EnderChest2String(event.getPlayer(), getGroup(event.getFrom().getLevel().getName()));
+            Xp2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()), xpconfig);
             String2Bag(event.getPlayer(), getGroup(event.getTo().getLevel().getName()));
+            String2EnderChest(event.getPlayer(), getGroup(event.getTo().getLevel().getName()));
+            String2Xp(event.getPlayer(), getGroup(event.getTo().getLevel().getName()), xpconfig);
         }
     });
     pnx.listenEvent("cn.nukkit.event.player.PlayerRespawnEvent", EventPriority.NORMAL, event => {
         String2Bag(event.getPlayer(), getGroup(event.getRespawnPosition().getLevel().getName()));
+        String2EnderChest(event.getPlayer(), getGroup(event.getRespawnPosition().getLevel().getName()));
+        String2Xp(event.getPlayer(), getGroup(event.getRespawnPosition().getLevel().getName()), xpconfig);
     });
     pnx.listenEvent("cn.nukkit.event.player.PlayerDeathEvent", EventPriority.NORMAL, event => {
-        Bag2String(event.getEntity(),getGroup(event.getEntity().getLevel().getName()));
+        Bag2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
+        EnderChest2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
+        Xp2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()), xpconfig);
     })
 }
 

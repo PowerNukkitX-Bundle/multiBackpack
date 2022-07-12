@@ -68,11 +68,11 @@ export function hexStringToBytes(hexString) {
         return null;
     }
     hexString = hexString.toUpperCase();
-    const length = hexString.length() / 2;
+    const length = hexString.length / 2;
     /** @type {number[]} */
     const d = [];
     for (let i = 0; i < length; i++) {
-        const pos = i << 2;
+        const pos = i * 2;
         d[i] = (charToByte(hexString.charAt(pos)) << 4 | charToByte(hexString.charAt(pos + 1)));
     }
     return Java.to(d, "byte[]");
