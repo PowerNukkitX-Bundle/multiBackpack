@@ -1,5 +1,7 @@
-import { readFile, writeFile, hexStringToBytes, bytesToHexString } from "./util.js"
-import { Item } from "cn.nukkit.item.Item"
+import { readFile, writeFile, hexStringToBytes, bytesToHexString } from "./util.js";
+import { Item } from "cn.nukkit.item.Item";
+
+const AIR = Item.get(0);
 
 /**
  * 将玩家的背包序列化为json后保存
@@ -8,7 +10,10 @@ import { Item } from "cn.nukkit.item.Item"
  */
 export function Bag2String(player, group) {
     let bjson = [];
-    player.getInventory().getContents().forEach((item, index) => {
+    player.getInventory().getContents().forEach((/** @type {Number} */ index, /** @type {cn.nukkit.item.Item} */ item) => {
+        if (item === null) {
+            item = AIR;
+        }
         bjson[index] = {
             "id": item.getNamespaceId(),
             "count": item.getCount(),
@@ -34,10 +39,14 @@ export function String2Bag(player, group) {
     const bjson = JSON.parse(text);
     for (let i = 0, len = bjson.length; i < len; i++) {
         const each = bjson[i];
-        const item = typeof each["id"] === "string" ? Item.fromString(each["id"]) : Item.get(each["id"]);
-        if (each["nbt"]) {
-            item.setCompoundTag(hexStringToBytes(each["nbt"]));
+        if (each === null) {
+            inv.setItem(i, AIR);
+        } else {
+            const item = typeof each["id"] === "string" ? Item.fromString(each["id"]) : Item.get(each["id"]);
+            if (each["nbt"]) {
+                item.setCompoundTag(hexStringToBytes(each["nbt"]));
+            }
+            inv.setItem(i, item);
         }
-        inv.setItem(i, item, true, true);
     }
 }
