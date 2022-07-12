@@ -34,7 +34,7 @@ export function main() {
         }
     }
     // 自动保存
-    setInterval(saveAll, 10000);
+    setInterval(saveAll, 20000);
     // 监听事件
     pnx.listenEvent("cn.nukkit.event.player.PlayerJoinEvent", EventPriority.NORMAL, event => {
         if (hasJoinedBefore(event.getPlayer())) {
@@ -101,7 +101,10 @@ function saveAll() {
     /** @type {cn.nukkit.Player[]} */
     let pls = Server.getInstance().getOnlinePlayers().values().toArray()
     for (const each of pls) {
-        Bag2String(each, getGroup(each.getLevel().getName()));
+        const groupName = getGroup(each.getLevel().getName());
+        Bag2String(each, groupName);
+        EnderChest2String(each, groupName);
+        Xp2String(each, groupName, xpconfig);
     }
 }
 
@@ -136,5 +139,5 @@ function hasJoinedBefore(player) {
 }
 
 export function close() {
-    console.error("Goodbye world");
+    saveAll();
 }
