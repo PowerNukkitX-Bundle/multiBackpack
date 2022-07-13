@@ -73,11 +73,15 @@ export function hexStringToBytes(hexString) {
     const d = [];
     for (let i = 0; i < length; i++) {
         const pos = i * 2;
-        d[i] = (charToByte(hexString.charAt(pos)) << 4 | charToByte(hexString.charAt(pos + 1)));
+        d[i] = toByte((charToByte(hexString.charAt(pos)) << 4) | charToByte(hexString.charAt(pos + 1)));
     }
     return Java.to(d, "byte[]");
 }
 
 function charToByte(c) {
     return "0123456789ABCDEF".indexOf(c);
+}
+
+function toByte(x) {
+    return ((((x | 0) & 0xff) + 128) % 256) - 128;
 }
