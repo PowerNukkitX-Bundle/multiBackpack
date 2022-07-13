@@ -45,6 +45,7 @@ export function String2Bag(player, group) {
             inv.setItem(i, AIR);
         } else {
             const item = typeof each["id"] === "string" ? Item.fromString(each["id"]) : Item.get(each["id"]);
+            item.setCount(each["count"]);
             if (each["nbt"]) {
                 item.setCompoundTag(hexStringToBytes(each["nbt"]));
             }
