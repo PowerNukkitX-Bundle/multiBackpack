@@ -121,10 +121,11 @@ export function Xp2String(player, group, xpconfig) {
  */
 export function String2Xp(player, group, xpconfig) {
     if (xpconfig[group] || group == "default") {
-        let tmp = readFile("./plugins/mutiBackpack/" + group + "/" + player.getName() + ".xp.json").split("L");
+        let tmp = readFile("./plugins/mutiBackpack/" + group + "/" + player.getName() + ".xp.json");
         if (tmp === null) {
             player.setExperience(0, 0);
         } else {
+            tmp = tmp.split("L");
             player.setExperience(Number(tmp[1]), Number(tmp[0]));
         }
     }
