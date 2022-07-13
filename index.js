@@ -34,7 +34,7 @@ export function main() {
         }
     }
     // 自动保存
-    setInterval(saveAll, 20000);
+    setInterval(saveAll, 240000);
     // 监听事件
     pnx.listenEvent("cn.nukkit.event.player.PlayerJoinEvent", EventPriority.NORMAL, event => {
         if (hasJoinedBefore(event.getPlayer())) {
