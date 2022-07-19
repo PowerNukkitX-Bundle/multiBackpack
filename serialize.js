@@ -22,6 +22,7 @@ export function Bag2String(player, group) {
             "data": item.getDamage(),
             "nbt": bytesToHexString(item.getCompoundTag())
         }
+        inv.clear(i);
     }
     writeFile("./plugins/mutiBackpack/" + group + "/" + player.getName() + ".json", JSON.stringify(bjson));
 }
@@ -76,6 +77,7 @@ export function EnderChest2String(player, group) {
             "data": item.getDamage(),
             "nbt": bytesToHexString(item.getCompoundTag())
         }
+        inv.clear(i);
     }
     writeFile("./plugins/mutiBackpack/" + group + "/" + player.getName() + "_enderchest" + ".json", JSON.stringify(bjson));
 }
