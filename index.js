@@ -94,6 +94,7 @@ export function main() {
         Bag2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
         EnderChest2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
         Xp2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()), xpconfig);
+        event.getEntity().getInventory().clearAll();
     })
 }
 
