@@ -55,7 +55,7 @@ export function main() {
         Xp2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()), xpconfig);
     });
     pnx.listenEvent("cn.nukkit.event.player.PlayerTeleportEvent", EventPriority.NORMAL, event => {
-        if (event.getFrom().getLevel().getName() !== event.getTo().getLevel().getName()) {
+        if (!event.isCancelled() && event.getFrom().getLevel().getName() !== event.getTo().getLevel().getName()) {
             const player = event.getPlayer();
             player.removeAllWindows();
             const craft1 = player.getUIInventory().getCraftingGrid().getItem(0).getId();
@@ -78,6 +78,7 @@ export function main() {
                 }
             }
             Bag2String(event.getPlayer(), getGroup(event.getFrom().getLevel().getName()));
+            event.getPlayer().getInventory().clearAll();
             EnderChest2String(event.getPlayer(), getGroup(event.getFrom().getLevel().getName()));
             Xp2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()), xpconfig);
             String2Bag(event.getPlayer(), getGroup(event.getTo().getLevel().getName()));
@@ -92,9 +93,9 @@ export function main() {
     });
     pnx.listenEvent("cn.nukkit.event.player.PlayerDeathEvent", EventPriority.NORMAL, event => {
         Bag2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
+        event.getEntity().getInventory().clearAll();
         EnderChest2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
         Xp2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()), xpconfig);
-        event.getEntity().getInventory().clearAll();
     })
 }
 
