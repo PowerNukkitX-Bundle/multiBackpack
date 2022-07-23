@@ -36,7 +36,7 @@ export function main() {
     // 自动保存
     setInterval(saveAll, 240000);
     // 监听事件
-    pnx.listenEvent("cn.nukkit.event.player.PlayerJoinEvent", EventPriority.MONITOR, event => {
+    pnx.listenEvent("cn.nukkit.event.player.PlayerJoinEvent", EventPriority.HIGHEST, event => {
         if (hasJoinedBefore(event.getPlayer())) {
             String2Bag(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
             String2EnderChest(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
@@ -49,12 +49,12 @@ export function main() {
             writeFile("./plugins/mutiBackpack/groups.json", JSON.stringify(worldconfig, null, 4));
         }
     });
-    pnx.listenEvent("cn.nukkit.event.player.PlayerQuitEvent", EventPriority.MONITOR, event => {
+    pnx.listenEvent("cn.nukkit.event.player.PlayerQuitEvent", EventPriority.HIGHEST, event => {
         Bag2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
         EnderChest2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()));
         Xp2String(event.getPlayer(), getGroup(event.getPlayer().getLevel().getName()), xpconfig);
     });
-    pnx.listenEvent("cn.nukkit.event.player.PlayerTeleportEvent", EventPriority.MONITOR, event => {
+    pnx.listenEvent("cn.nukkit.event.player.PlayerTeleportEvent", EventPriority.HIGHEST, event => {
         if (!event.isCancelled() && event.getFrom().getLevel().getName() !== event.getTo().getLevel().getName()) {
             const player = event.getPlayer();
             player.removeAllWindows();
@@ -86,12 +86,12 @@ export function main() {
             String2Xp(event.getPlayer(), getGroup(event.getTo().getLevel().getName()), xpconfig);
         }
     });
-    pnx.listenEvent("cn.nukkit.event.player.PlayerRespawnEvent", EventPriority.MONITOR, event => {
+    pnx.listenEvent("cn.nukkit.event.player.PlayerRespawnEvent", EventPriority.HIGHEST, event => {
         String2Bag(event.getPlayer(), getGroup(event.getRespawnPosition().getLevel().getName()));
         String2EnderChest(event.getPlayer(), getGroup(event.getRespawnPosition().getLevel().getName()));
         String2Xp(event.getPlayer(), getGroup(event.getRespawnPosition().getLevel().getName()), xpconfig);
     });
-    pnx.listenEvent("cn.nukkit.event.player.PlayerDeathEvent", EventPriority.MONITOR, event => {
+    pnx.listenEvent("cn.nukkit.event.player.PlayerDeathEvent", EventPriority.HIGHEST, event => {
         Bag2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
         event.getEntity().getInventory().clearAll();
         EnderChest2String(event.getEntity(), getGroup(event.getEntity().getLevel().getName()));
