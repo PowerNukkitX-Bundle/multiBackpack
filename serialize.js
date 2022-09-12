@@ -12,15 +12,26 @@ export function Bag2String(player, group) {
     let bjson = [];
     const inv = player.getInventory();
     for (let i = 0; i < 40; i++) {
-        let item = inv.getItem(i);
-        if (item === null) {
+        let item;
+        try {
+            item = inv.getItem(i);
+            if (item === null) {
+                item = AIR;
+            }
+            bjson[i] = {
+                "id": item.getNamespaceId(),
+                "count": item.getCount(),
+                "data": item.getDamage(),
+                "nbt": bytesToHexString(item.getCompoundTag())
+            } 
+        } catch (ignore) {
             item = AIR;
-        }
-        bjson[i] = {
-            "id": item.getNamespaceId(),
-            "count": item.getCount(),
-            "data": item.getDamage(),
-            "nbt": bytesToHexString(item.getCompoundTag())
+            bjson[i] = {
+                "id": item.getNamespaceId(),
+                "count": item.getCount(),
+                "data": item.getDamage(),
+                "nbt": bytesToHexString(item.getCompoundTag())
+            }
         }
     }
     writeFile("./plugins/mutiBackpack/" + group + "/" + player.getName() + ".json", JSON.stringify(bjson));
@@ -44,13 +55,17 @@ export function String2Bag(player, group) {
         if (each === null) {
             inv.setItem(i, AIR);
         } else {
-            const item = typeof each["id"] === "string" ? Item.fromString(each["id"]) : Item.get(each["id"]);
-            item.setCount(each["count"]);
-            item.setDamage(each["data"]);
-            if (each["nbt"]) {
-                item.setCompoundTag(hexStringToBytes(each["nbt"]));
+            try {
+                const item = typeof each["id"] === "string" ? Item.fromString(each["id"]) : Item.get(each["id"]);
+                item.setCount(each["count"]);
+                item.setDamage(each["data"]);
+                if (each["nbt"]) {
+                    item.setCompoundTag(hexStringToBytes(each["nbt"]));
+                }
+                inv.setItem(i, item);
+            } catch (ignore) {
+                console.warn("Unknown item: " + JSON.stringify(each));
             }
-            inv.setItem(i, item);
         }
     }
 }
@@ -66,15 +81,26 @@ export function EnderChest2String(player, group) {
     }
     const inv = player.getEnderChestInventory();
     for (let i = 0; i < 27; i++) {
-        let item = inv.getItem(i);
-        if (item === null) {
+        let item;
+        try {
+            item = inv.getItem(i);
+            if (item === null) {
+                item = AIR;
+            }
+            bjson[i] = {
+                "id": item.getNamespaceId(),
+                "count": item.getCount(),
+                "data": item.getDamage(),
+                "nbt": bytesToHexString(item.getCompoundTag())
+            }
+        } catch (ignore) {
             item = AIR;
-        }
-        bjson[i] = {
-            "id": item.getNamespaceId(),
-            "count": item.getCount(),
-            "data": item.getDamage(),
-            "nbt": bytesToHexString(item.getCompoundTag())
+            bjson[i] = {
+                "id": item.getNamespaceId(),
+                "count": item.getCount(),
+                "data": item.getDamage(),
+                "nbt": bytesToHexString(item.getCompoundTag())
+            }
         }
     }
     writeFile("./plugins/mutiBackpack/" + group + "/" + player.getName() + "_enderchest" + ".json", JSON.stringify(bjson));
@@ -95,16 +121,20 @@ export function String2EnderChest(player, group) {
     let items = [];
     for (let i = 0; i < bjson.length; i++) {
         const each = bjson[i];
-        if (each === null) {
-            inv.setItem(i, AIR);
-        } else {
-            const item = typeof each["id"] === "string" ? Item.fromString(each["id"]) : Item.get(each["id"]);
-            item.setCount(each["count"]);
-            item.setDamage(each["data"]);
-            if (each["nbt"]) {
-                item.setCompoundTag(hexStringToBytes(each["nbt"]));
+        try {
+            if (each === null) {
+                inv.setItem(i, AIR);
+            } else {
+                const item = typeof each["id"] === "string" ? Item.fromString(each["id"]) : Item.get(each["id"]);
+                item.setCount(each["count"]);
+                item.setDamage(each["data"]);
+                if (each["nbt"]) {
+                    item.setCompoundTag(hexStringToBytes(each["nbt"]));
+                }
+                inv.setItem(i, item);
             }
-            inv.setItem(i, item);
+        } catch (ignore) {
+            console.warn("Unknown item: " + JSON.stringify(each));
         }
     }
 }
